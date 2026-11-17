@@ -267,22 +267,20 @@ SYSTEM_RULES = ("You answer questions for an outdoor gear store using only the c
 
 def build_prompt(question, chunks, tools=None, budget=120):
     """System rules, tools, labelled context chunks under a token budget, then the question."""
-    prompt = f"SYSTEM: {SYSTEM_RULES}"
+    lines = ["SYSTEM: " + SYSTEM_RULES]
     if tools:
-        prompt += f"\nTOOLS: {", ".join(tools)}"
-    prompt += f"\nCONTEXT:"
-    run_total = 0 
-    for chunk in chunks:
-        header = f"[{chunk['id']}] ({'trusted' if chunk['trusted'] else 'untrusted'}) {chunk['path']}"
-        curr_size = count_tokens(chunk["text"]) + count_tokens(header) 
-        run_total += curr_size
-        if run_total>budget:
-            break
-        prompt += f"\n{header}\n{chunk["text"]}"
-        
-        
-    prompt += f"\nQUESTION: {question}"
-    return prompt
+        lines.append("TOOLS: " + ", ".join(tools))
+    lines.append("CONTEXT:")
+    used = 0
+    for c in chunks:
+        header = f"[{c['id']}] ({'trusted' if c['trusted'] else 'untrusted'}) {c['path']}"
+        size = count_tokens(header) + count_tokens(c["text"])
+        if used + size > budget:
+            break                      # first chunk that doesn't fit: stop, don't skip ahead
+        lines += [header, c["text"]]
+        used += size
+    lines.append("QUESTION: " + question)
+    return "\n".join(lines)
 
 # Step 5 - parse_answer (not yet solved)
 # TODO: implement
