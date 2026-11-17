@@ -14,7 +14,7 @@ python scaffold.py
 - [x] **2.** bm25_scores
 - [x] **3.** hybrid_search
 - [x] **4.** build_prompt
-- [ ] **5.** parse_answer
+- [x] **5.** parse_answer
 - [ ] **6.** ask
 - [ ] **7.** cascade
 - [ ] **8.** permission_gate

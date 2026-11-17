@@ -282,8 +282,37 @@ def build_prompt(question, chunks, tools=None, budget=120):
     lines.append("QUESTION: " + question)
     return "\n".join(lines)
 
-# Step 5 - parse_answer (not yet solved)
-# TODO: implement
+# Step 5 - parse_answer
+def parse_answer(raw, known_ids):
+    """(answer dict, []) if the reply holds a valid answer, else (None, list of error messages)."""
+    start, end = raw.find("{"), raw.rfind("}")
+    if start == -1 or end <= start:
+        return None, ["no JSON object found"]
+    try:
+        obj = json.loads(raw[start:end + 1])
+    except json.JSONDecodeError:
+        return None, ["invalid JSON"]
+    if not isinstance(obj, dict):
+        return None, ["no JSON object found"]
+
+    errors = []
+    if not isinstance(obj.get("answer"), str):
+        errors.append("answer must be a string")
+
+    cites = obj.get("citations")
+    if not isinstance(cites, list) or not all(isinstance(c, str) and c in known_ids for c in cites):
+        errors.append("citations must be a list of chunk ids from the context")
+
+    conf = obj.get("confidence")
+    if isinstance(conf, bool) or not isinstance(conf, (int, float)) or not 0 <= conf <= 1:
+        errors.append("confidence must be a number from 0 to 1")
+
+    if "tool_call" in obj:
+        tc = obj["tool_call"]
+        if not (isinstance(tc, dict) and isinstance(tc.get("name"), str) and isinstance(tc.get("args"), dict)):
+            errors.append("tool_call must have a name and an args object")
+
+    return (obj, []) if not errors else (None, errors)
 
 # Step 6 - ask (not yet solved)
 # TODO: implement
