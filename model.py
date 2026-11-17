@@ -215,8 +215,30 @@ def chunk_document(doc, max_tokens=40):
             })
     return chunks
 
-# Step 2 - bm25_scores (not yet solved)
-# TODO: implement
+# Step 2 - bm25_scores
+def bm25_scores(chunks, query, k1=1.5, b=0.75):
+    """One BM25 score per chunk for the query."""
+    
+    N = len(chunks)
+    if N == 0:
+        return []
+    terms = [t for t in tokenize(query) if t not in STOP]
+    docs =[tokenize(chunk["path"] + " " + chunk["text"]) for chunk in chunks]
+    L = [len(d) for d in docs]        
+    L_bar = sum(L) /N
+    scores = [0.0 for i in range(N)]
+    df = {t: sum(1 for d in docs if t in d) for t in set(terms)}
+    for t in terms:
+        
+        for i,words in enumerate(docs):
+            
+            
+        
+           
+            f = words.count(t)
+            if f>0:
+                scores[i] += math.log((N-df[t] +0.5)/(df[t]+0.5) +1)*(f*(k1+1)/(f+k1*(1-b+ b*L[i]/L_bar)))
+    return scores
 
 # Step 3 - hybrid_search (not yet solved)
 # TODO: implement

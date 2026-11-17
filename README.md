@@ -11,7 +11,7 @@ python scaffold.py
 ## Steps
 
 - [x] **1.** chunk_document
-- [ ] **2.** bm25_scores
+- [x] **2.** bm25_scores
 - [ ] **3.** hybrid_search
 - [ ] **4.** build_prompt
 - [ ] **5.** parse_answer
