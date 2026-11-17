@@ -251,7 +251,7 @@ def hybrid_search(chunks, vectors, query, k=3, rrf_k=60):
     for pos,i in enumerate(order_sparse):
         ranked_sparse[i] = pos+1
 
-    dense_scores = [vectors[i]@q for i in range(N)]
+    dense_scores = [float(vectors[i]@q) for i in range(N)]
     order_cosine = sorted(range(N),key = lambda i:dense_scores[i], reverse=True)
     ranked_cosine = [0]*N
     for pos,i in enumerate(order_cosine):
