@@ -240,8 +240,25 @@ def bm25_scores(chunks, query, k1=1.5, b=0.75):
                 scores[i] += math.log((N-df[t] +0.5)/(df[t]+0.5) +1)*(f*(k1+1)/(f+k1*(1-b+ b*L[i]/L_bar)))
     return scores
 
-# Step 3 - hybrid_search (not yet solved)
-# TODO: implement
+# Step 3 - hybrid_search
+def hybrid_search(chunks, vectors, query, k=3, rrf_k=60):
+    """The top k chunks by reciprocal rank fusion of embedding and BM25 rankings."""
+    q = embed(query)
+    N= len(chunks)
+    sparse_scores = bm25_scores(chunks,query)
+    order_sparse = sorted(range(N),key = lambda i:sparse_scores[i], reverse=True)
+    ranked_sparse = [0]*N
+    for pos,i in enumerate(order_sparse):
+        ranked_sparse[i] = pos+1
+
+    dense_scores = [vectors[i]@q for i in range(N)]
+    order_cosine = sorted(range(N),key = lambda i:dense_scores[i], reverse=True)
+    ranked_cosine = [0]*N
+    for pos,i in enumerate(order_cosine):
+        ranked_cosine[i] = pos+1
+    lis = [1/(rrf_k + ranked_sparse[i]) + 1/(rrf_k + ranked_cosine[i]) for i in range(N)]
+    best = sorted(range(N),key = lambda i: lis[i],reverse=True)[:k]
+    return [chunks[i] for i in best]
 
 # Step 4 - build_prompt (not yet solved)
 # TODO: implement

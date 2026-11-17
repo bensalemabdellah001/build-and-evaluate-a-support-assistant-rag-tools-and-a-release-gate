@@ -12,7 +12,7 @@ python scaffold.py
 
 - [x] **1.** chunk_document
 - [x] **2.** bm25_scores
-- [ ] **3.** hybrid_search
+- [x] **3.** hybrid_search
 - [ ] **4.** build_prompt
 - [ ] **5.** parse_answer
 - [ ] **6.** ask
