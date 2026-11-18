@@ -397,8 +397,36 @@ def run_turn(question, chunks, vectors, version, k=3, threshold=0.6, gate=True):
             "answer": obj["answer"] if obj else None,
             "citations": obj["citations"] if obj else []}
 
-# Step 10 - SemanticCache (not yet solved)
-# TODO: implement
+# Step 10 - SemanticCache
+class SemanticCache:
+    """Reuse answers for questions with near-identical embeddings, per version, dropped when a source page changes."""
+
+    def __init__(self, threshold=0.92):
+        self.threshold = threshold
+        self.entries = []
+    def get(self, vector, version):
+        best_score,best_value = None,None
+        for e in self.entries:
+            if e["version"] != version:
+                continue
+            score = float(e["vector"]@vector)
+            if best_score is None or score> best_score:
+                best_score = score
+                best_value = e["value"]
+        if best_score is not None and best_score >=self.threshold:
+            return best_value
+        return None
+
+
+    def put(self, vector, version, value, doc_ids):
+        self.entries.append({"vector":vector,"version":version,"value":value,"doc_ids":set(doc_ids)})
+
+    def invalidate(self, doc_id):
+    
+        kept = [e for e in self.entries if doc_id not in e["doc_ids"]]
+        removed = len(self.entries) - len(kept)
+        self.entries = kept
+        return removed
 
 # Step 11 - evaluate (not yet solved)
 # TODO: implement
