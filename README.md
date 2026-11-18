@@ -15,7 +15,7 @@ python scaffold.py
 - [x] **3.** hybrid_search
 - [x] **4.** build_prompt
 - [x] **5.** parse_answer
-- [ ] **6.** ask
+- [x] **6.** ask
 - [ ] **7.** cascade
 - [ ] **8.** permission_gate
 - [ ] **9.** run_turn
