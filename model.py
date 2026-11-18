@@ -335,8 +335,17 @@ def ask(model, prompt, known_ids, max_attempts=2):
         p = prompt + "\nERRORS: " +"; ".join(errors) + "\nReply with valid JSON only."
     return {"result":obj , "attempts":attempts, "errors":err_list,"cost":cost}
 
-# Step 7 - cascade (not yet solved)
-# TODO: implement
+# Step 7 - cascade
+def cascade(prompt, known_ids, threshold=0.6):
+    """Small model first; the large model when the small one fails or is below the confidence threshold."""
+    first = ask("small", prompt, known_ids)
+    obj = first["result"]
+    
+    
+    if obj is not None and (obj.get("confidence")>=threshold or "tool_call" in obj):
+        return {**first,"model":"small","escalated":False}
+    second = ask("large",prompt,known_ids)
+    return {**second,"model":"large","escalated":True,"cost":first["cost"]+second["cost"]}
 
 # Step 8 - permission_gate (not yet solved)
 # TODO: implement
