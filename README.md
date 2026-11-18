@@ -18,7 +18,7 @@ python scaffold.py
 - [x] **6.** ask
 - [x] **7.** cascade
 - [x] **8.** permission_gate
-- [ ] **9.** run_turn
+- [x] **9.** run_turn
 - [ ] **10.** SemanticCache
 - [ ] **11.** evaluate
 - [ ] **12.** release_gate

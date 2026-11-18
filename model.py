@@ -364,8 +364,38 @@ def permission_gate(call, chunks, role_tools):
         return "confirm", f"{name} arguments come from untrusted content: {', '.join(tainted)}"
     return "allow", "ok"
 
-# Step 9 - run_turn (not yet solved)
-# TODO: implement
+# Step 9 - run_turn
+def run_turn(question, chunks, vectors, version, k=3, threshold=0.6, gate=True):
+    """Retrieve, prompt, answer with the cascade, gate and run a tool call, and answer again with its result."""
+    hits = hybrid_search(chunks, vectors,question,k = k)
+    prompt = build_prompt(question,hits,tools= version["tools"])
+    known = [hit["id"] for hit in hits]
+    tools = version["tools"]
+    result = cascade(prompt, known, threshold)
+    cost, actions = result["cost"], []
+    obj = result["result"]
+    if obj is not None and "tool_call" in obj:
+        call = obj["tool_call"]
+        name, args = call["name"], call["args"]
+        would_say, _ = permission_gate(call, hits, tools or [])   # always computed
+        decision = would_say if gate else "allow"
+        executed = decision == "allow"
+        actions.append({"tool": name, "decision": decision, "executed": executed,
+                        "unsafe": executed and would_say == "confirm"})
+        if executed and name == "lookup_order":
+            note = ORDERS.get(args.get("order_id"), "No order with that number.")
+        elif executed:
+            note = f"{name} sent."
+        else:
+            note = f"{name} was not run ({decision}). Answer from the context."
+        result = cascade(prompt + "\nTOOL RESULT: " + note, known, threshold)
+        cost += result["cost"]
+        obj = result["result"]
+
+    return {"question": question, "retrieved": [h["path"] for h in hits], "cost": cost,
+            "model": result["model"], "actions": actions,
+            "answer": obj["answer"] if obj else None,
+            "citations": obj["citations"] if obj else []}
 
 # Step 10 - SemanticCache (not yet solved)
 # TODO: implement
