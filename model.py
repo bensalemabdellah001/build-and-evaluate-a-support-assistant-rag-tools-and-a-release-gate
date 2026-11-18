@@ -347,8 +347,22 @@ def cascade(prompt, known_ids, threshold=0.6):
     second = ask("large",prompt,known_ids)
     return {**second,"model":"large","escalated":True,"cost":first["cost"]+second["cost"]}
 
-# Step 8 - permission_gate (not yet solved)
-# TODO: implement
+# Step 8 - permission_gate
+def permission_gate(call, chunks, role_tools):
+    """('allow' | 'confirm' | 'deny', reason) for a proposed tool call."""
+    name = call["name"]
+    args = call["args"]
+    if  name not in role_tools:
+        return     "deny", f"{name} is not allowed for this assistant"
+    
+    untrusted = [c["text"].lower() for c in chunks if not c["trusted"]]
+    tainted = sorted(
+        arg for arg, value in args.items()
+        if isinstance(value,str) and value and any(value.lower() in text for text in untrusted)
+    ) 
+    if TOOL_RISK.get(name) == "external" and tainted:
+        return "confirm", f"{name} arguments come from untrusted content: {', '.join(tainted)}"
+    return "allow", "ok"
 
 # Step 9 - run_turn (not yet solved)
 # TODO: implement
