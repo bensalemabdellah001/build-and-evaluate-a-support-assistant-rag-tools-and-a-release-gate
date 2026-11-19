@@ -20,7 +20,7 @@ python scaffold.py
 - [x] **8.** permission_gate
 - [x] **9.** run_turn
 - [x] **10.** SemanticCache
-- [ ] **11.** evaluate
+- [x] **11.** evaluate
 - [ ] **12.** release_gate
 
 ---

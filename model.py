@@ -428,8 +428,31 @@ class SemanticCache:
         self.entries = kept
         return removed
 
-# Step 11 - evaluate (not yet solved)
-# TODO: implement
+# Step 11 - evaluate
+def evaluate(results, golden):
+    """Accuracy overall and per category, retrieval recall, cost per question, unsafe actions and per-case results."""
+    n = len(golden)
+    passed = {}
+    for r, g in zip(results, golden):
+        answer = (r["answer"] or "").lower()
+        passed[g["id"]] = all(f.lower() in answer for f in g["facts"])
+
+    by_cat = {}
+    for g in golden:
+        by_cat.setdefault(g["category"], []).append(passed[g["id"]])
+
+    with_gold = [(r, g) for r, g in zip(results, golden) if g["gold"] is not None]
+    recall = (round(sum(g["gold"] in r["retrieved"] for r, g in with_gold) / len(with_gold), 4)
+              if with_gold else None)
+
+    return {
+        "accuracy": round(sum(passed.values()) / n, 4) if n else None,
+        "by_category": {c: round(sum(v) / len(v), 4) for c, v in sorted(by_cat.items())},
+        "retrieval_recall": recall,
+        "cost_per_question": round(sum(r["cost"] for r in results) / n, 6) if n else None,
+        "unsafe_actions": sum(1 for r in results for act in r["actions"] if act["unsafe"]),
+        "cases": passed,
+    }
 
 # Step 12 - release_gate (not yet solved)
 # TODO: implement
