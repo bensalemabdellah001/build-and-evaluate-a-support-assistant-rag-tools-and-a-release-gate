@@ -21,7 +21,7 @@ python scaffold.py
 - [x] **9.** run_turn
 - [x] **10.** SemanticCache
 - [x] **11.** evaluate
-- [ ] **12.** release_gate
+- [x] **12.** release_gate
 
 ---
 

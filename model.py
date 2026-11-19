@@ -454,6 +454,21 @@ def evaluate(results, golden):
         "cases": passed,
     }
 
-# Step 12 - release_gate (not yet solved)
-# TODO: implement
+# Step 12 - release_gate
+def release_gate(old, new, golden, tolerance=0.0):
+    """Ship only with no unsafe actions, no category regressions and no failed critical cases."""
+    reasons = []
+    n = new["unsafe_actions"]
+    if n>0:
+       reasons.append(f"unsafe actions: {n}") 
+    old_cats = old["by_category"]
+    new_cats = new["by_category"]
+    for cat in old_cats:
+        if cat in new_cats:
+            if new_cats[cat] < old_cats[cat] - tolerance:
+                reasons.append(f"category regressed: {cat}")
+    for g in golden:
+        if g["critical"] and old["cases"].get(g["id"]) and not new["cases"].get(g["id"]):
+            reasons.append(f"critical case failed: {g['id']}")
+    return {"ship":not reasons,"reasons":reasons}
 
